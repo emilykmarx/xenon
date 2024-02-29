@@ -64,15 +64,18 @@ func (my *MysqlBase) SetQueryTimeout(timeout int) {
 // one for heath check
 // other for get master_binglog the slave is syncing
 func (my *MysqlBase) Ping(db *sql.DB) (*PingEntry, error) {
+	fmt.Printf("ZZEM Enter Ping (mysqlbase.go)\n")
 	pe := &PingEntry{}
 	query := "SHOW SLAVE STATUS"
 	rows, err := QueryWithTimeout(db, my.queryTimeout, query)
 	if err != nil {
+		fmt.Printf("ZZEM Exit Ping, fail with err %v (mysqlbase.go)\n", err)
 		return nil, err
 	}
 	if len(rows) > 0 {
 		pe.Relay_Master_Log_File = rows[0]["Relay_Master_Log_File"]
 	}
+	fmt.Printf("ZZEM Exit Ping, success (mysqlbase.go)\n")
 	return pe, nil
 }
 
@@ -267,7 +270,7 @@ func (my *MysqlBase) EnableSemiSyncMaster(db *sql.DB) error {
 	return ExecuteWithTimeout(db, my.queryTimeout, cmds)
 }
 
-//SetSemiWaitSlaveCount used set rpl_semi_sync_master_wait_for_slave_count
+// SetSemiWaitSlaveCount used set rpl_semi_sync_master_wait_for_slave_count
 func (my *MysqlBase) SetSemiWaitSlaveCount(db *sql.DB, count int) error {
 	cmds := fmt.Sprintf("SET GLOBAL rpl_semi_sync_master_wait_for_slave_count = %d", count)
 	return ExecuteWithTimeout(db, my.queryTimeout, cmds)

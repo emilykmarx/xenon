@@ -8,10 +8,10 @@
 //
 // The driver should be used via the database/sql package:
 //
-//  import "database/sql"
-//  import _ "github.com/go-sql-driver/mysql"
+//	import "database/sql"
+//	import _ "github.com/go-sql-driver/mysql"
 //
-//  db, err := sql.Open("mysql", "user:password@/dbname")
+//	db, err := sql.Open("mysql", "user:password@/dbname")
 //
 // See https://github.com/go-sql-driver/mysql#usage for details
 package mysql
@@ -19,6 +19,7 @@ package mysql
 import (
 	"database/sql"
 	"database/sql/driver"
+	"fmt"
 	"net"
 	"sync"
 )
@@ -57,6 +58,7 @@ func RegisterDial(net string, dial DialFunc) {
 // See https://github.com/go-sql-driver/mysql#dsn-data-source-name for how
 // the DSN string is formated
 func (d MySQLDriver) Open(dsn string) (driver.Conn, error) {
+	fmt.Printf("ZZEM enter driver Open\n")
 	var err error
 
 	// New mysqlConn
@@ -67,6 +69,7 @@ func (d MySQLDriver) Open(dsn string) (driver.Conn, error) {
 	}
 	mc.cfg, err = ParseDSN(dsn)
 	if err != nil {
+		fmt.Printf("ZZEM exit driver Open with error %v\n", err)
 		return nil, err
 	}
 	mc.parseTime = mc.cfg.ParseTime
@@ -82,6 +85,7 @@ func (d MySQLDriver) Open(dsn string) (driver.Conn, error) {
 		mc.netConn, err = nd.Dial(mc.cfg.Net, mc.cfg.Addr)
 	}
 	if err != nil {
+		fmt.Printf("ZZEM exit driver Open with error %v\n", err)
 		return nil, err
 	}
 
@@ -91,6 +95,7 @@ func (d MySQLDriver) Open(dsn string) (driver.Conn, error) {
 			// Don't send COM_QUIT before handshake.
 			mc.netConn.Close()
 			mc.netConn = nil
+			fmt.Printf("ZZEM exit driver Open with error %v\n", err)
 			return nil, err
 		}
 	}
@@ -110,6 +115,7 @@ func (d MySQLDriver) Open(dsn string) (driver.Conn, error) {
 	authData, plugin, err := mc.readHandshakePacket()
 	if err != nil {
 		mc.cleanup()
+		fmt.Printf("ZZEM exit driver Open with error %v\n", err)
 		return nil, err
 	}
 	if plugin == "" {
@@ -125,11 +131,13 @@ func (d MySQLDriver) Open(dsn string) (driver.Conn, error) {
 		authResp, err = mc.auth(authData, plugin)
 		if err != nil {
 			mc.cleanup()
+			fmt.Printf("ZZEM exit driver Open with error %v\n", err)
 			return nil, err
 		}
 	}
 	if err = mc.writeHandshakeResponsePacket(authResp, plugin); err != nil {
 		mc.cleanup()
+		fmt.Printf("ZZEM exit driver Open with error %v\n", err)
 		return nil, err
 	}
 
@@ -139,6 +147,7 @@ func (d MySQLDriver) Open(dsn string) (driver.Conn, error) {
 		// (https://dev.mysql.com/doc/internals/en/authentication-fails.html).
 		// Do not send COM_QUIT, just cleanup and return the error.
 		mc.cleanup()
+		fmt.Printf("ZZEM exit driver Open with error %v\n", err)
 		return nil, err
 	}
 
@@ -149,6 +158,7 @@ func (d MySQLDriver) Open(dsn string) (driver.Conn, error) {
 		maxap, err := mc.getSystemVar("max_allowed_packet")
 		if err != nil {
 			mc.Close()
+			fmt.Printf("ZZEM exit driver Open with error %v\n", err)
 			return nil, err
 		}
 		mc.maxAllowedPacket = stringToInt(maxap) - 1
@@ -161,9 +171,11 @@ func (d MySQLDriver) Open(dsn string) (driver.Conn, error) {
 	err = mc.handleParams()
 	if err != nil {
 		mc.Close()
+		fmt.Printf("ZZEM exit driver Open with error %v\n", err)
 		return nil, err
 	}
 
+	fmt.Printf("ZZEM exit driver Open with success; conn remote addr %v\n", mc.netConn.RemoteAddr())
 	return mc, nil
 }
 
