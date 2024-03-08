@@ -103,4 +103,7 @@ ping_host(){
 
 build_conf
 ping_host
+echo "Starting tcpdump"
+tcpdump -i any -w xenon_$HOST.pcap &
+
 exec "$@"
