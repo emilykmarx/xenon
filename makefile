@@ -10,6 +10,12 @@ build:
 	go build -v -o bin/xenoncli --ldflags '$(LDFLAGS)' src/cli/cli.go
 	@chmod 755 bin/*
 
+buildtestdf: LDFLAGS   += $(shell GOPATH=${GOPATH} src/build/ldflags.sh)
+buildtestdf:
+	@mkdir -p bin/
+	go build -v -o bin/testdf -gcflags="all=-N -l" --ldflags '$(LDFLAGS)' src/test_df/test_df.go
+	@chmod 755 bin/*
+
 clean:
 	@echo "--> Cleaning..."
 	@mkdir -p bin/

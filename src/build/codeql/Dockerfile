@@ -36,3 +36,5 @@ CMD ["sleep", "infinity"]
 
 # This command works:
 # codeql database create /xenon_db --command "make build" --source-root /go/src/github.com/radondb/xenon --language=go
+# or:
+# codeql database create /xenon_db --command "make buildtestdf" --source-root /go/src/github.com/radondb/xenon --language=go
