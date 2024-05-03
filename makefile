@@ -6,8 +6,8 @@ build: LDFLAGS   += $(shell GOPATH=${GOPATH} src/build/ldflags.sh)
 build:
 	@echo "--> Building..."
 	@mkdir -p bin/
-	go build -v -o bin/xenon    --ldflags '$(LDFLAGS)' src/xenon/xenon.go
-	go build -v -o bin/xenoncli --ldflags '$(LDFLAGS)' src/cli/cli.go
+	go build -v -o bin/xenon    -gcflags="all=-N -l" --ldflags '$(LDFLAGS)' src/xenon/xenon.go
+	go build -v -o bin/xenoncli -gcflags="all=-N -l" --ldflags '$(LDFLAGS)' src/cli/cli.go
 	@chmod 755 bin/*
 
 buildtestdf: LDFLAGS   += $(shell GOPATH=${GOPATH} src/build/ldflags.sh)
