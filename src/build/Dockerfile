@@ -1,12 +1,12 @@
-# Assumes run from wtf-project, which has xenon and go
+# Assumes run from projects
 
 FROM golang:1.20.1-alpine
 
 ARG XENON_BRANCH=feature_adapt_k8s
 WORKDIR /go/src/github.com/radondb
-COPY xenon xenon
+COPY wtf_project/xenon xenon
 # Copy in version of go/net 1.20 with dns,files order
-COPY xenon/go_1_20_1/net/conf.go /usr/local/go/src/net/
+COPY wtf_project/xenon/go_1_20_1/net/conf.go /usr/local/go/src/net/
 
 RUN set -ex; \
     cd xenon; \
@@ -27,22 +27,24 @@ RUN set -ex \
 
 ENV PATH="/go/src/github.com/radondb/xenon/bin/:${PATH}"
 
-RUN git clone https://github.com/go-delve/delve
+WORKDIR /
+COPY config_tracing/delve delve
 # need to build delve
 RUN go env -w GO111MODULE=on; \
-    cd delve; go install github.com/go-delve/delve/cmd/dlv
+    cd delve; \
+    go install github.com/go-delve/delve/cmd/dlv; \
+    go install ./cmd/dlv/dlv_config_client; \
+    cd ..
 
-WORKDIR /
 EXPOSE 8801
 VOLUME ["/var/lib/xenon", "/etc/xenon"]
 
-COPY xenon/src/build/helm_docker_entrypoint.sh .
+COPY wtf_project/xenon/src/build/helm_docker_entrypoint.sh .
 
 ENTRYPOINT ["/helm_docker_entrypoint.sh"]
 CMD ["sleep", "infinity"]
 # Pod status will show as initializing, but can exec into xenon container and run
-# `dlv exec /go/src/github.com/radondb/xenon/bin/xenon -- -c /etc/xenon/xenon.json`
 
-# LEFT OFF with delve: https://alexsniffin.medium.com/debugging-remotely-in-kubernetes-with-go-fda4f3332316
-# May want auto-start eventually
-# CMD ["dlv", "exec", "--headless", "--listen", ":4040", "/go/src/github.com/radondb/xenon/bin/xenon", "--" "-c", "/etc/xenon/xenon.json"]
+# CMD ["dlv", "exec", "--headless", "--api-version=2", "--accept-multiclient", "--log", "--log-output=debugger,dap,rpc", "--listen=:4040", "/go/src/github.com/radondb/xenon/bin/xenon", "--" "-c", "/etc/xenon/xenon.json"]
+# dlv exec --headless --api-version=2 --accept-multiclient --log --log-output=debugger,dap,rpc --listen=:4040 /go/src/github.com/radondb/xenon/bin/xenon -- -c /etc/xenon/xenon.json
+# dlv_config_client
