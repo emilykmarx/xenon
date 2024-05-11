@@ -14,7 +14,7 @@ WORKDIR codeql-repo/go
 RUN make extractor
 
 # 2. Build codeql db (which includes building xenon in same way as usual)
-FROM golang:1.13.15
+FROM golang:1.20.1
 
 RUN apt update && apt install -y \
   vim
@@ -22,8 +22,11 @@ RUN apt update && apt install -y \
 ARG XENON_BRANCH=feature_adapt_k8s
 WORKDIR /go/src/github.com/radondb
 COPY wtf_project/xenon xenon
-# Copy in my version of net
-COPY wtf_project/go/src/net /usr/local/go/src/net
+# Copy in version of go/net 1.20 with dns,files order
+COPY wtf_project/xenon/go_1_20_1/net/conf.go /usr/local/go/src/net/
+# need to build xenon?
+RUN go env -w GO111MODULE=off
+
 WORKDIR /
 # Copy in codeql-home
 # If the build cache invalidating here gets annoying, can just copy CLI I think
