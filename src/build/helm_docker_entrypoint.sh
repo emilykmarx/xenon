@@ -103,7 +103,8 @@ ping_host(){
 
 build_conf
 ping_host
-echo "Starting tcpdump"
-tcpdump -i any -w xenon_$HOST.pcap &
+# Not in original xenon base image (non-golang alpine) - configures DNS resolution order as files,dns
+# But breaks ping_host in golang:1.20.1 (at least in Docker - didn't try k8s)
+rm /etc/nsswitch.conf
 
 exec "$@"

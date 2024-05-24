@@ -1,0 +1,40 @@
+# Assumes run from projects
+
+FROM golang:1.20.1
+
+ARG XENON_BRANCH=feature_adapt_k8s
+WORKDIR /go/src/github.com/radondb
+COPY wtf_project/xenon xenon
+# Copy in version of go/net 1.20 with dns,files order
+COPY wtf_project/xenon/go_1_20_1/net/conf.go /usr/local/go/src/net/
+
+RUN set -ex; \
+    cd xenon; \
+    apt update && apt install -y iputils-ping vim; \
+    go env -w GO111MODULE=off; \
+    make build
+
+RUN set -ex \
+    && addgroup --gid 1001 mysql && adduser --uid 1001 --gecos 1001 --system mysql \
+    && mkdir -p /etc/xenon /var/lib/xenon /lib64 \
+    && echo "/etc/xenon/xenon.json" > /config.path \
+    # allow to change config files
+    && chown -R 1001:1001 /etc/xenon /var/lib/xenon
+
+ENV PATH="/go/src/github.com/radondb/xenon/bin/:${PATH}"
+
+EXPOSE 8801
+VOLUME ["/var/lib/xenon", "/etc/xenon"]
+
+WORKDIR /
+COPY wtf_project/xenon/src/build/helm_docker_entrypoint.sh .
+
+ENTRYPOINT ["/helm_docker_entrypoint.sh"]
+CMD ["xenon", "-c", "/etc/xenon/xenon.json"]
+#CMD ["sleep", "infinity"]
+# Pod status will show as initializing, but can exec into xenon container and run
+
+### Delve
+# CMD ["dlv", "exec", "--headless", "backend=rr", "--api-version=2", "--accept-multiclient", "--listen=:4040", "/go/src/github.com/radondb/xenon/bin/xenon", "--" "-c", "/etc/xenon/xenon.json"]
+# dlv exec --headless --backend=rr --api-version=2 --accept-multiclient --listen=:4040 /go/src/github.com/radondb/xenon/bin/xenon -- -c /etc/xenon/xenon.json
+# dlv_config_client (not ./dlv_config_client - there may be an old executable there if used `go build` for client locally)
