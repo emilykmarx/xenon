@@ -16,13 +16,13 @@ RUN set -ex; \
 
 WORKDIR /
 # rr
+COPY config_tracing/rr rr
 RUN set -ex; \
-    git clone https://github.com/rr-debugger/rr.git; \
     cd rr; git checkout 5.7.0; cd ..; \
     mkdir rr_build && cd rr_build; \
-    cmake -DCMAKE_BUILD_TYPE=Release ../rr; \
-    make -j8; \
-    make install; \
+    CC=clang CXX=clang++ cmake -G Ninja -DCMAKE_BUILD_TYPE=Release ../rr; \
+    cmake --build .; \
+    sudo cmake --build . --target install; \
     cd ..
 
 # xenon
@@ -63,11 +63,11 @@ RUN set -ex; \
 
 ENTRYPOINT ["/helm_docker_entrypoint.sh"]
 #CMD ["xenon", "-c", "/etc/xenon/xenon.json"]
-#CMD ["sleep", "infinity"]
+CMD ["sleep", "infinity"]
 # Pod status will show as initializing, but can exec into xenon container and run
 
 # Delve/rr commands
 # Let this run until see the DNS query, then in container: `pkill xenon` -- wait for it to start replay, then dlv_config_client
-CMD ["dlv", "exec", "--headless", "--backend=rr", "--api-version=2", "--accept-multiclient", "--listen=:4040", "/go/src/github.com/radondb/xenon/bin/xenon", "--", "-c", "/etc/xenon/xenon.json"]
+#CMD ["dlv", "exec", "--headless", "--backend=rr", "--api-version=2", "--accept-multiclient", "--listen=:4040", "/go/src/github.com/radondb/xenon/bin/xenon", "--", "-c", "/etc/xenon/xenon.json"]
 # dlv exec --headless --backend=rr --api-version=2 --accept-multiclient --listen=:4040 /go/src/github.com/radondb/xenon/bin/xenon -- -c /etc/xenon/xenon.json
 # dlv_config_client (not ./dlv_config_client - there may be an old executable there if used `go build` for client locally)
