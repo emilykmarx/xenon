@@ -18,11 +18,10 @@ WORKDIR /
 # rr
 COPY config_tracing/rr rr
 RUN set -ex; \
-    cd rr; git checkout 5.7.0; cd ..; \
     mkdir rr_build && cd rr_build; \
-    CC=clang CXX=clang++ cmake -G Ninja -DCMAKE_BUILD_TYPE=Release ../rr; \
-    cmake --build .; \
-    sudo cmake --build . --target install; \
+    cmake -DCMAKE_BUILD_TYPE=Release ../rr; \
+    make -j8; \
+    make install; \
     cd ..
 
 # xenon
