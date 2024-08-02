@@ -68,5 +68,9 @@ CMD ["sleep", "infinity"]
 # Delve/rr commands
 # Let this run until see the DNS query, then in container: `pkill xenon` -- wait for it to start replay, then dlv_config_client
 #CMD ["dlv", "exec", "--headless", "--backend=rr", "--api-version=2", "--accept-multiclient", "--listen=:4040", "/go/src/github.com/radondb/xenon/bin/xenon", "--", "-c", "/etc/xenon/xenon.json"]
-# dlv exec --headless --backend=rr --api-version=2 --accept-multiclient --listen=:4040 /go/src/github.com/radondb/xenon/bin/xenon -- -c /etc/xenon/xenon.json
-# dlv_config_client (not ./dlv_config_client - there may be an old executable there if used `go build` for client locally)
+# dlv exec --headless --backend=rr --api-version=2 --accept-multiclient --listen=:4040 \
+    # /go/src/github.com/radondb/xenon/bin/xenon -- -c /etc/xenon/xenon.json \
+    # > server_out.txt 2> server_err.txt
+# dlv_config_client -initial_bp_file=/usr/local/go/src/net/dnsconfig_unix.go -initial_bp_line=144 -initial_watchexpr=conf.search \
+    #  > client_out.txt 2> client_err.txt
+    # (not ./dlv_config_client - there may be an old executable there if used `go build` for client locally)
