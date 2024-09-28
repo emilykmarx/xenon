@@ -6,7 +6,7 @@ set -e
 docker build -f wtf_project/xenon/src/build/debian_Dockerfile -t xenon .
 docker run --cap-add=SYS_PTRACE --security-opt seccomp=unconfined --name xenon --rm xenon &
 sleep 1
-docker exec xenon mkdir /outfiles
+docker exec xenon sh -c 'mkdir /outfiles; cat /etc/resolv.conf.xenon > /etc/resolv.conf' # overwrite resolv.conf
 
 # Record and replay
 docker exec xenon sh -c 'dlv exec --headless --backend=rr --api-version=2 --accept-multiclient --listen=:4040 \
@@ -14,6 +14,3 @@ docker exec xenon sh -c 'dlv exec --headless --backend=rr --api-version=2 --acce
     > /outfiles/server_out.txt 2> /outfiles/server_err.txt'
 
 # Should hang here - if not, perf counters likely in use => kill container and retry
-
-# LEFT OFF:
-# This works, but trace is so long with manual pkill -- crash xenon when it gets to the msg send for now?

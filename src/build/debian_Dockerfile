@@ -28,7 +28,12 @@ RUN set -ex; \
 WORKDIR /go/src/github.com/radondb
 COPY wtf_project/xenon xenon
 # Copy in version of go/net 1.20 with dns,files order
-COPY wtf_project/xenon/go_1_20_1/net/conf.go /usr/local/go/src/net/
+COPY wtf_project/go1.20.1/src/net/conf.go /usr/local/go/src/net/
+# Copy in version that makes A queries only
+COPY wtf_project/go1.20.1/src/net/dnsclient_unix.go /usr/local/go/src/net/
+# Copy in /etc/resolv.conf that will get an answer for localhost using first fqdn
+# (so only sends one query per ping, if dnsclient_unix only makes A queries)
+COPY wtf_project/xenon/src/build/etc_resolv.conf /etc/resolv.conf.xenon
 
 RUN set -ex; \
     cd xenon; \

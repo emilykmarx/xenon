@@ -6,7 +6,6 @@
 # Assumes run from projects
 
 # Run client
-docker exec xenon sh -c 'pkill xenon'
 docker exec xenon sh -c 'dlv_config_client -initial_bp_file=/usr/local/go/src/net/dnsconfig_unix.go -initial_bp_line=144 -initial_watchexpr=conf.search \
     > /outfiles/client_out.txt 2> /outfiles/client_err.txt'
 

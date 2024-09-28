@@ -70,6 +70,7 @@ func (my *MysqlBase) Ping(db *sql.DB) (*PingEntry, error) {
 	rows, err := QueryWithTimeout(db, my.queryTimeout, query)
 	if err != nil {
 		fmt.Printf("ZZEM Exit Ping, fail with err %v (mysqlbase.go)\n", err)
+		panic("Exiting Ping thread")
 		return nil, err
 	}
 	if len(rows) > 0 {

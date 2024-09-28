@@ -5,8 +5,8 @@ set -e
 
 # Assumes run from projects
 
-echo 'Fill in trace id'
-trace_id=arrayAt_ambiguous
+echo 'Fill in trace id!!!!!!!!!!!'
+trace_id=single_query
 
 docker build -f wtf_project/xenon/src/build/debian_Dockerfile -t xenon .
 docker run --cap-add=SYS_PTRACE --security-opt seccomp=unconfined --name xenon --rm xenon &
