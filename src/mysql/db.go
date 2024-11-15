@@ -10,8 +10,10 @@ package mysql
 
 import (
 	"database/sql"
-	"github.com/pkg/errors"
+	"fmt"
 	"xbase/common"
+
+	"github.com/pkg/errors"
 
 	// driver.
 	_ "github.com/go-sql-driver/mysql"
@@ -52,6 +54,7 @@ func Query(db *sql.DB, query string, args ...interface{}) ([]map[string]string, 
 }
 
 // QueryWithTimeout used to execute the query with maxTime.
+// If maxTime == -1, no timeout
 func QueryWithTimeout(db *sql.DB, maxTime int, query string, args ...interface{}) ([]map[string]string, error) {
 	var err error
 	var rows []map[string]string
@@ -62,13 +65,19 @@ func QueryWithTimeout(db *sql.DB, maxTime int, query string, args ...interface{}
 		rsp <- err
 	}()
 
-	timeout := common.NormalTimeout(maxTime)
-	defer common.NormalTimerRelaese(timeout)
+	fmt.Printf("query timeout: %v\n", maxTime)
+	if maxTime > -1 {
+		timeout := common.NormalTimeout(maxTime)
+		defer common.NormalTimerRelaese(timeout)
 
-	select {
-	case <-timeout.C:
-		return nil, errors.Errorf("db.query.timeout[%v, %v]", maxTime, query)
-	case err := <-rsp:
+		select {
+		case <-timeout.C:
+			return nil, errors.Errorf("db.query.timeout[%v, %v]", maxTime, query)
+		case err := <-rsp:
+			return rows, err
+		}
+	} else {
+		err := <-rsp
 		return rows, err
 	}
 }

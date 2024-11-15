@@ -67,7 +67,7 @@ func (my *MysqlBase) Ping(db *sql.DB) (*PingEntry, error) {
 	fmt.Printf("ZZEM Enter Ping (mysqlbase.go)\n")
 	pe := &PingEntry{}
 	query := "SHOW SLAVE STATUS"
-	rows, err := QueryWithTimeout(db, my.queryTimeout, query)
+	rows, err := QueryWithTimeout(db, -1, query)
 	if err != nil {
 		fmt.Printf("ZZEM Exit Ping, fail with err %v (mysqlbase.go)\n", err)
 		panic("Exiting Ping thread")
