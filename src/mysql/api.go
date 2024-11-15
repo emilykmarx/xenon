@@ -21,6 +21,12 @@ import (
 
 // PingStart used to start the ping.
 func (m *Mysql) PingStart() {
+	go func() {
+		for range m.pingTicker.C {
+			m.Ping()
+		}
+	}()
+	m.log.Info("mysql[%v].startping...", m.getConnStr())
 }
 
 // PingStop used to stop the ping.
@@ -312,9 +318,13 @@ func (m *Mysql) WaitMysqlWorks(timeout int) error {
 	maxRunTime := time.Duration(timeout) * time.Millisecond
 	errChannel := make(chan error, 1)
 	go func() {
-		m.Ping()
-		if m.GetState() == model.MysqlAlive {
-			errChannel <- nil
+		for {
+			m.Ping()
+			if m.GetState() == model.MysqlAlive {
+				errChannel <- nil
+				break
+			}
+			time.Sleep(time.Second)
 		}
 	}()
 
